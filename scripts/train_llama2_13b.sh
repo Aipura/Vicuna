@@ -1,0 +1,48 @@
+deepspeed --include localhost:0,1,2,3 --master_port 62000 train.py \
+    --model_name_or_path /root/autodl-tmp/Llama-2-7b-hf \
+    --data_path "sft.json" \
+    --eval_data_path "sft_test.json" \
+    --dataset_format "alpaca" \
+    --output_dir checkpoint/Action_SFT_Head3 \
+    --num_train_epochs 10 \
+    --fp16 False \
+    --bf16 True \
+    --tf32 True \
+    --gradient_checkpointing True \
+    --flash_attn False \
+    --xformers True \
+    --per_device_train_batch_size 60 \
+    --per_device_eval_batch_size 60 \
+    --gradient_accumulation_steps 2 \
+    --evaluation_strategy "steps" \
+    --eval_steps 20  \
+    --save_strategy "steps" \
+    --save_steps 40 \
+    --save_total_limit 1 \
+    --load_best_model_at_end False \
+    --logging_strategy "steps" \
+    --logging_steps 1 \
+    --lora_r 8 \
+    --lora_alpha 16 \
+    --lora_dropout 0.05 \
+    --q_lora False \
+    --data_seed 42 \
+    --do_train \
+    --model_max_length 2048 \
+    --source_max_len 2048 \
+    --target_max_len 512 \
+    --do_eval \
+    --eval_dataset_size 3000 \
+    --dataloader_num_workers 3 \
+    --remove_unused_columns False \
+    --learning_rate 2e-5 \
+    --weight_decay 0. \
+    --warmup_ratio 0.03 \
+    --lr_scheduler_type "cosine" \
+    --adam_beta2 0.999 \
+    --max_grad_norm 0.3 \
+    --seed 3407 \
+    --disable_tqdm False \
+    --lora_target_modules q_proj v_proj o_proj gate_proj down_proj up_proj fc1 fc2 actor\
+    --train_on_source False \
+    --deepspeed /root/autodl-tmp/Code/deepspeed_config_s2.json
