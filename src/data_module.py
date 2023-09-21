@@ -147,8 +147,8 @@ def local_dataset(dataset_name):
     else:
         raise ValueError(f"Unsupported dataset format: {dataset_name}")
 
-    split_dataset = full_dataset.train_test_split(test_size=0.1)
-    return split_dataset
+    # split_dataset = full_dataset.train_test_split(test_size=0.1)
+    return full_dataset
 
 def make_custom_data_module(tokenizer: transformers.PreTrainedTokenizer, args) -> Dict:
     """
@@ -189,8 +189,6 @@ def make_custom_data_module(tokenizer: transformers.PreTrainedTokenizer, args) -
             return load_dataset("akoksal/LongForm")
         elif dataset_name == 'oasst1':
             return load_dataset("timdettmers/openassistant-guanaco")
-        elif dataset_name == 'vicuna':
-            raise NotImplementedError("Vicuna data was not released.")
         else:
             if os.path.exists(dataset_name):
                 try:
@@ -231,7 +229,7 @@ def make_custom_data_module(tokenizer: transformers.PreTrainedTokenizer, args) -
             pass
         # Remove unused columns.
         dataset = dataset.remove_columns(
-            [col for col in dataset.column_names['train'] if col not in ['input', 'output']]
+            [col for col in dataset.column_names if col not in ['input', 'output']]
         )
         return dataset
 
@@ -245,7 +243,7 @@ def make_custom_data_module(tokenizer: transformers.PreTrainedTokenizer, args) -
             eval_dataset = dataset['eval']
         else:
             print('Splitting train dataset in train and validation according to `eval_dataset_size`')
-            dataset = dataset["train"].train_test_split(
+            dataset = dataset.train_test_split(
                 test_size=args.eval_dataset_size, shuffle=True, seed=42
             )
             eval_dataset = dataset['test']

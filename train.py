@@ -18,6 +18,7 @@ from dataclasses import dataclass, field
 import json
 import math
 import pathlib
+import argparse
 from typing import Dict, Optional, Sequence
 
 import numpy as np
@@ -53,7 +54,14 @@ def rank0_print(*args):
     if local_rank == 0:
         print(*args)
 
-
+def safe_save_model_for_hf_trainer(trainer: transformers.Trainer, output_dir: str):
+    """Collects the state dict and dump to disk."""
+    state_dict = trainer.model.state_dict()
+    if trainer.args.should_save:
+        cpu_state_dict = {key: value.cpu() for key, value in state_dict.items()}
+        del state_dict
+        trainer._save(output_dir, state_dict=cpu_state_dict)  # noqa
+        
 def trainer_save_model_safe(trainer: transformers.Trainer):
     from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
     from torch.distributed.fsdp import StateDictType, FullStateDictConfig
@@ -236,16 +244,16 @@ def train():
         **vars(model_args), **vars(data_args), **vars(training_args), **vars(lora_args)
     )
 
-    if model_args.flash_attn and model_args.xformers:
+    if args.flash_attn and args.xformers:
         raise ValueError("At most one of flash_attn and xformers can be True, but not both")
 
-    if model_args.flash_attn:
+    if args.flash_attn:
         from fastchat.train.llama_flash_attn_monkey_patch import (
             replace_llama_attn_with_flash_attn,
         )
         replace_llama_attn_with_flash_attn()
 
-    if model_args.xformers:
+    if args.xformers:
         from fastchat.train.llama_xformers_attn_monkey_patch import (
             replace_llama_attn_with_xformers_attn,
         )
@@ -325,7 +333,7 @@ def train():
     # Save model
     model.config.use_cache = True
     trainer.save_state()
-    trainer_save_model_safe(trainer)
+    safe_save_model_for_hf_trainer(trainer=trainer, output_dir=training_args.output_dir)
 
 
 if __name__ == "__main__":

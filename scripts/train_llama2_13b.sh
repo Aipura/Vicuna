@@ -1,9 +1,8 @@
-deepspeed --include localhost:0,1,2,3 --master_port 62000 train.py \
+deepspeed --include localhost:0 --master_port 62000 train.py \
     --model_name_or_path /root/autodl-tmp/Llama-2-7b-hf \
-    --data_path "sft.json" \
-    --eval_data_path "sft_test.json" \
+    --dataset "data/alpaca_data_cleaned_1000.json" \
     --dataset_format "alpaca" \
-    --output_dir checkpoint/Action_SFT_Head3 \
+    --output_dir checkpoint \
     --num_train_epochs 10 \
     --fp16 False \
     --bf16 True \
@@ -11,8 +10,8 @@ deepspeed --include localhost:0,1,2,3 --master_port 62000 train.py \
     --gradient_checkpointing True \
     --flash_attn False \
     --xformers True \
-    --per_device_train_batch_size 60 \
-    --per_device_eval_batch_size 60 \
+    --per_device_train_batch_size 24 \
+    --per_device_eval_batch_size 24 \
     --gradient_accumulation_steps 2 \
     --evaluation_strategy "steps" \
     --eval_steps 20  \
@@ -22,17 +21,14 @@ deepspeed --include localhost:0,1,2,3 --master_port 62000 train.py \
     --load_best_model_at_end False \
     --logging_strategy "steps" \
     --logging_steps 1 \
-    --lora_r 8 \
-    --lora_alpha 16 \
-    --lora_dropout 0.05 \
-    --q_lora False \
     --data_seed 42 \
+    --train_on_source False \
     --do_train \
     --model_max_length 2048 \
     --source_max_len 2048 \
     --target_max_len 512 \
     --do_eval \
-    --eval_dataset_size 3000 \
+    --eval_dataset_size 300 \
     --dataloader_num_workers 3 \
     --remove_unused_columns False \
     --learning_rate 2e-5 \
@@ -43,6 +39,5 @@ deepspeed --include localhost:0,1,2,3 --master_port 62000 train.py \
     --max_grad_norm 0.3 \
     --seed 3407 \
     --disable_tqdm False \
-    --lora_target_modules q_proj v_proj o_proj gate_proj down_proj up_proj fc1 fc2 actor\
-    --train_on_source False \
-    --deepspeed /root/autodl-tmp/Code/deepspeed_config_s2.json
+    --report_to wandb \
+    --deepspeed playground/deepspeed_config_s2.json
